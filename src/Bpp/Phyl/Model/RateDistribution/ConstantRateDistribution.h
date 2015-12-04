@@ -49,15 +49,15 @@ class ConstantRateDistribution:
   public ConstantDistribution
 {
   public:
-    ConstantRateDistribution():
+    ConstantRateDistribution(double value = 1.):
       AbstractParameterAliasable("Constant."),
-      ConstantDistribution(1.)
+      ConstantDistribution(value)
     {
       deleteParameter_(0);
     }
 
     ConstantRateDistribution* clone() const { return new ConstantRateDistribution(*this); }
-    
+
 };
 
 } //end of namespace bpp;
