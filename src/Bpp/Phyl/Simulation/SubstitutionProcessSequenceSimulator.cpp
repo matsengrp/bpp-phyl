@@ -182,12 +182,17 @@ Site* SimpleSubstitutionProcessSequenceSimulator::simulateSite(size_t ancestralS
   {
     evolveInternal(root->getSon(i), rateClass, rate);
   }
+
   // Now create a Site object:
-  Vint site(leaves_.size());
-  for (size_t i = 0; i < leaves_.size(); i++)
+  // (das): previously we only looped over leaves... now we do it for all the nodes
+  vector<SPNode*> nodes = tree_.getNodes();
+  nodes.pop_back(); // remove root
+  Vint site(nodes.size());
+  for (size_t i = 0; i < nodes.size(); ++i)
   {
-    site[i] = process_->getSubstitutionModel(leaves_[i]->getId(),rateClass).getAlphabetStateAsInt(leaves_[i]->getInfos().state);
+    site[i] = process_->getSubstitutionModel(nodes[i]->getId(), rateClass).getAlphabetStateAsInt(nodes[i]->getInfos().state);
   }
+
   return new Site(site, alphabet_);
 }
 
@@ -572,9 +577,38 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
   seqNames_(),
   mvPosNames_()
 {
+
   vector<size_t> nProc=evol.getSubstitutionProcessNumbers();
-  
-  seqNames_=evol.getSubstitutionProcess(nProc[0]).getTree().getLeavesNames();
+
+  // (das): 
+  // for just leaves we have:
+  //seqNames_ = evol.getSubstitutionProcess(nProc[0]).getTree().getLeavesNames();
+  // but we don't have a method for getAllNodesNames() which we want since we're now looping over
+  // all nodes and not just leaves, BUT we have to make up the names for the inner nodes
+  // so this is what we do:
+
+  TreeTemplate<Node> tmpTree = evol.getSubstitutionProcess(nProc[0]).getTree();
+  vector<int> nodes = tmpTree.getNodesId();
+  nodes.pop_back(); // remove root
+
+  for (size_t i = 0; i < nodes.size(); ++i)
+  {
+    if ( tmpTree.isLeaf(nodes[i]) )
+    {
+      // get leaf names which we have
+      seqNames_.push_back(tmpTree.getNodeName(nodes[i]));
+    }
+    else
+    {
+      // make up interior node names which we do not have
+      // currently they are named recursively with their first son after their dummy name...
+      std::ostringstream innerNode;
+      innerNode << "n" << i << "," << tmpTree.getNodeName(tmpTree.getSonsId(nodes[i]).front());
+      string tmpName = innerNode.str();
+      seqNames_.push_back(tmpName);
+      tmpTree.setNodeName(nodes[i],tmpName);
+    }
+  }
 
   for (size_t i=0; i< nProc.size(); i++)
   {
@@ -582,7 +616,39 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
     
     mProcess_[nProc[i]]=new SimpleSubstitutionProcessSequenceSimulator(sp);
 
-    const vector<string>& seqNames2=sp.getTree().getLeavesNames();
+    // (das):
+    // again this is just for leaves:
+    //const vector<string>& seqNames2=sp.getTree().getLeavesNames();
+
+    // the only purpose I could see this block having is to ensure that the leaf names for each
+    // substitutionProcess are the same, like for site 1 vs 2
+
+    // we're going to go through and get the leaf names for the node corresponding to each site but AGAIN
+    // we have to make up interior node names, so let's do it to it same code different day...
+
+    TreeTemplate<Node> tmpTree2 = sp.getTree();
+    vector<int> nodes2 = tmpTree2.getNodesId();
+    nodes2.pop_back(); // remove root
+    vector<string> seqNames2;
+
+    for (size_t ii = 0; ii < nodes2.size(); ++ii)
+    {
+      if ( tmpTree2.isLeaf(nodes2[ii]) )
+      {
+        // get leaf names which we have
+        seqNames2.push_back(tmpTree2.getNodeName(nodes2[ii]));
+      }
+      else
+      {
+        // make up interior node names which we do not have
+        std::ostringstream innerNode;
+        innerNode << "n" << ii << "," << tmpTree2.getNodeName(tmpTree2.getSonsId(nodes2[ii]).front());
+        string tmpName = innerNode.str();
+        seqNames2.push_back(tmpName);
+        tmpTree2.setNodeName(nodes2[ii],tmpName);
+      }
+    }
+
     mvPosNames_[nProc[i]].resize(seqNames_.size());
 
     for (size_t j=0; j<seqNames_.size(); j++)
