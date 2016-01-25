@@ -603,7 +603,8 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
       // make up interior node names which we do not have
       // currently they are named recursively with their first son after their dummy name...
       std::ostringstream innerNode;
-      innerNode << "n" << i << "," << tmpTree.getNodeName(tmpTree.getSonsId(nodes[i]).front());
+      //innerNode << "n" << i << "," << tmpTree.getNodeName(tmpTree.getSonsId(nodes[i]).front());
+      innerNode << "n" << i;
       string tmpName = innerNode.str();
       seqNames_.push_back(tmpName);
       tmpTree.setNodeName(nodes[i],tmpName);
@@ -642,7 +643,8 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
       {
         // make up interior node names which we do not have
         std::ostringstream innerNode;
-        innerNode << "n" << ii << "," << tmpTree2.getNodeName(tmpTree2.getSonsId(nodes2[ii]).front());
+        //innerNode << "n" << ii << "," << tmpTree2.getNodeName(tmpTree2.getSonsId(nodes2[ii]).front());
+        innerNode << "n" << ii;
         string tmpName = innerNode.str();
         seqNames2.push_back(tmpName);
         tmpTree2.setNodeName(nodes2[ii],tmpName);
