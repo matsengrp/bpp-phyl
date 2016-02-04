@@ -605,13 +605,25 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
       // we need something that will be unique across different traversals, so
       // we'll name it as all of its leaf names concatenated in lex order... seems reasonable
 
+      // TODO(das): instead of stringstream, make vector of strings that we push_back onto for
+      // each leaf name, then sort it, THEN string stream it
+
       std::ostringstream innerNode;
       Node* currentNode = tmpTree.getNode(nodes[i]);
       vector<int> subLeaves = TreeTemplateTools::getLeavesId(*currentNode);
+      vector<string> innerNodeVec; //!!
       for (size_t leafIter = 0; leafIter < subLeaves.size(); ++leafIter)
       {
-        innerNode << tmpTree.getNodeName(subLeaves[leafIter]);
+        //innerNode << tmpTree.getNodeName(subLeaves[leafIter]);
+        innerNodeVec.push_back(tmpTree.getNodeName(subLeaves[leafIter])); //!!
       }
+      //!!begin
+      sort(innerNodeVec.begin(), innerNodeVec.end());
+      for (size_t nodeIter = 0; nodeIter < innerNodeVec.size(); ++nodeIter)
+      {
+        innerNode << innerNodeVec[nodeIter];
+      }
+      //!!end
 
       seqNames_.push_back(innerNode.str());
       tmpTree.setNodeName(nodes[i], innerNode.str());
@@ -654,10 +666,20 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
         std::ostringstream innerNode;
         Node* currentNode = tmpTree2.getNode(nodes2[ii]);
         vector<int> subLeaves = TreeTemplateTools::getLeavesId(*currentNode);
+        vector<string> innerNodeVec; //!!
         for (size_t leafIter = 0; leafIter < subLeaves.size(); ++leafIter)
         {
-          innerNode << tmpTree2.getNodeName(subLeaves[leafIter]);
+          //innerNode << tmpTree2.getNodeName(subLeaves[leafIter]);
+          innerNodeVec.push_back(tmpTree2.getNodeName(subLeaves[leafIter])); //!!
         }
+
+        //!!begin
+        sort(innerNodeVec.begin(), innerNodeVec.end());
+        for (size_t nodeIter = 0; nodeIter < innerNodeVec.size(); ++nodeIter)
+        {
+          innerNode << innerNodeVec[nodeIter];
+        }
+        //!!end
 
         seqNames2.push_back(innerNode.str());
         tmpTree2.setNodeName(nodes2[ii], innerNode.str());
