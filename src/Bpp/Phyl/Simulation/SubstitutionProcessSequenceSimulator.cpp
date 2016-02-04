@@ -185,6 +185,7 @@ Site* SimpleSubstitutionProcessSequenceSimulator::simulateSite(size_t ancestralS
 
   // Now create a Site object:
   // (das): previously we only looped over leaves... now we do it for all the nodes
+  //
   vector<SPNode*> nodes = tree_.getNodes();
   nodes.pop_back(); // remove root
   Vint site(nodes.size());
@@ -601,13 +602,20 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
     else
     {
       // make up interior node names which we do not have
-      // currently they are named recursively with their first son after their dummy name...
+      // we need something that will be unique across different traversals, so
+      // we'll name it as all of its leaf names concatenated in lex order... seems reasonable
+
       std::ostringstream innerNode;
-      //innerNode << "n" << i << "," << tmpTree.getNodeName(tmpTree.getSonsId(nodes[i]).front());
-      innerNode << "n" << i;
-      string tmpName = innerNode.str();
-      seqNames_.push_back(tmpName);
-      tmpTree.setNodeName(nodes[i],tmpName);
+      Node* currentNode = tmpTree.getNode(nodes[i]);
+      vector<int> subLeaves = TreeTemplateTools::getLeavesId(*currentNode);
+      for (size_t leafIter = 0; leafIter < subLeaves.size(); ++leafIter)
+      {
+        innerNode << tmpTree.getNodeName(subLeaves[leafIter]);
+      }
+
+      seqNames_.push_back(innerNode.str());
+      tmpTree.setNodeName(nodes[i], innerNode.str());
+
     }
   }
 
@@ -642,12 +650,18 @@ SubstitutionProcessSequenceSimulator::SubstitutionProcessSequenceSimulator(const
       else
       {
         // make up interior node names which we do not have
+
         std::ostringstream innerNode;
-        //innerNode << "n" << ii << "," << tmpTree2.getNodeName(tmpTree2.getSonsId(nodes2[ii]).front());
-        innerNode << "n" << ii;
-        string tmpName = innerNode.str();
-        seqNames2.push_back(tmpName);
-        tmpTree2.setNodeName(nodes2[ii],tmpName);
+        Node* currentNode = tmpTree2.getNode(nodes2[ii]);
+        vector<int> subLeaves = TreeTemplateTools::getLeavesId(*currentNode);
+        for (size_t leafIter = 0; leafIter < subLeaves.size(); ++leafIter)
+        {
+          innerNode << tmpTree2.getNodeName(subLeaves[leafIter]);
+        }
+
+        seqNames2.push_back(innerNode.str());
+        tmpTree2.setNodeName(nodes2[ii], innerNode.str());
+
       }
     }
 
